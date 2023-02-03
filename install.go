@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,6 +13,15 @@ import (
 	"github.com/codeclysm/extract"
 	"github.com/elsaland/elsa/util"
 )
+
+type Package struct {
+	Versions map[string]Version `json:"versions"`
+}
+
+type Version struct {
+	Name    string `json:"name"`
+	Version string `json:"version"`
+}
 
 func ExtractTarGz(buffer *bytes.Buffer, name string) {
 	var shift = func(path string) string {
@@ -30,6 +40,20 @@ func fetchPackage(name, reference string) []byte {
 	resp, err := io.ReadAll(r.Body)
 	util.Check(err)
 	return resp
+}
+
+func getVersions(name string) map[string]Version {
+	var packageInfo *Package
+	registry := "https://registry.yarnpkg.com"
+	r, err := http.Get(fmt.Sprintf("%v/%v", registry, name))
+	util.Check(err)
+
+	resp, err := io.ReadAll(r.Body)
+	util.Check(err)
+
+	json.Unmarshal([]byte(resp), &packageInfo)
+
+	return packageInfo.Versions
 }
 
 func install() {

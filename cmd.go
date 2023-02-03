@@ -10,6 +10,7 @@ import (
 )
 
 func Execute() {
+	var listVersionsFlag bool
 	var rootCmd = &cobra.Command{
 		Args:  matchAll(cobra.MinimumNArgs(1), cobra.MaximumNArgs(2)),
 		Use:   "pm [package] [version]",
@@ -17,11 +18,23 @@ func Execute() {
 		Long: `pm is the Cub Package Manager prototype. It tries to mimic the behavior
 of existing JS package managers such as npm, yarn and bun's built-in package manager`,
 		Run: func(cmd *cobra.Command, args []string) {
-			resp := fetchPackage(args[0], args[1])
-			buffer := bytes.NewBuffer(resp)
-			ExtractTarGz(buffer, args[0])
+			// TODO: Ordered JSON map
+			// so the latest version is at the bottom and colored
+			if len(args) <= 1 && listVersionsFlag {
+				packageInfo := getVersions(args[0])
+				for _, versions := range packageInfo {
+					fmt.Println(versions.Version)
+				}
+			}
+			if len(args) >= 2 {
+				resp := fetchPackage(args[0], args[1])
+				buffer := bytes.NewBuffer(resp)
+				ExtractTarGz(buffer, args[0])
+			}
 		},
 	}
+
+	rootCmd.Flags().BoolVarP(&listVersionsFlag, "version", "v", false, "List all available package versions")
 
 	var freshInstallFlag bool
 	var installCmd = &cobra.Command{

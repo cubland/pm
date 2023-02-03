@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
 
+	"github.com/Masterminds/semver/v3"
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
@@ -18,12 +21,25 @@ func Execute() {
 		Long: `pm is the Cub Package Manager prototype. It tries to mimic the behavior
 of existing JS package managers such as npm, yarn and bun's built-in package manager`,
 		Run: func(cmd *cobra.Command, args []string) {
-			// TODO: Ordered JSON map
-			// so the latest version is at the bottom and colored
 			if len(args) <= 1 && listVersionsFlag {
 				packageInfo := getVersions(args[0])
+				vs := make([]*semver.Version, len(packageInfo))
+				var i = -1
 				for _, versions := range packageInfo {
-					fmt.Println(versions.Version)
+					i++
+					v, err := semver.NewVersion(versions.Version)
+					if err != nil {
+						log.Fatalf("Error parsing version: %s", err)
+					}
+					vs[i] = v
+				}
+				sort.Sort(semver.Collection(vs))
+				for _, final := range vs {
+					if final == vs[len(vs)-1] {
+						fmt.Println(color.GreenString(final.String()))
+					} else {
+						fmt.Println(final)
+					}
 				}
 			}
 			if len(args) >= 2 {

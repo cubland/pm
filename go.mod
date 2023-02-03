@@ -3,14 +3,15 @@ module github.com/cubland/pm
 go 1.19
 
 require (
+	github.com/Masterminds/semver/v3 v3.2.0
 	github.com/codeclysm/extract v2.2.0+incompatible
 	github.com/elsaland/elsa v0.0.0-20221129160035-1982c3d1cad0
+	github.com/fatih/color v1.9.0
 	github.com/spf13/cobra v1.0.0
 )
 
 require (
 	github.com/elsaland/quickjs v0.0.0-20200926030524-a9835b20920b // indirect
-	github.com/fatih/color v1.9.0 // indirect
 	github.com/h2non/filetype v1.1.3 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/juju/errors v0.0.0-20181118221551-089d3ea4e4d5 // indirect

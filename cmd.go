@@ -8,6 +8,7 @@ import (
 	"sort"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/elsaland/elsa/util"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
@@ -21,6 +22,7 @@ func Execute() {
 		Long: `pm is the Cub Package Manager prototype. It tries to mimic the behavior
 of existing JS package managers such as npm, yarn and bun's built-in package manager`,
 		Run: func(cmd *cobra.Command, args []string) {
+			// -v flag. List versions without installing anything
 			if len(args) <= 1 && listVersionsFlag {
 				packageInfo := getVersions(args[0])
 				vs := make([]*semver.Version, len(packageInfo))
@@ -42,8 +44,31 @@ of existing JS package managers such as npm, yarn and bun's built-in package man
 					}
 				}
 			}
+			// Install given package with given version number
 			if len(args) >= 2 {
-				resp := fetchPackage(args[0], args[1])
+				c, err := semver.NewConstraint(args[1])
+				util.Check(err)
+
+				packageInfo := getVersions(args[0])
+				vs := make([]*semver.Version, len(packageInfo))
+				var i = -1
+				for _, versions := range packageInfo {
+					i++
+					v, err := semver.NewVersion(versions.Version)
+					if err != nil {
+						log.Fatalf("Error parsing version: %s", err)
+					}
+					vs[i] = v
+				}
+				sort.Sort(semver.Collection(vs))
+				var vp string
+				for _, final := range vs {
+					if c.Check(final) {
+						vp = final.String()
+					}
+				}
+
+				resp := fetchPackage(args[0], vp)
 				buffer := bytes.NewBuffer(resp)
 				ExtractTarGz(buffer, args[0])
 			}
